@@ -8,9 +8,11 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
-  <AuthContextProvider>
-    <Router>
-      <App />
-    </Router>
-  </AuthContextProvider>
+  <ThemeContextProvider>
+    <AuthContextProvider>
+      <Router>
+        <App />
+      </Router>
+    </AuthContextProvider>
+  </ThemeContextProvider>
 );
