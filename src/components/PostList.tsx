@@ -18,16 +18,6 @@ interface PostListProps {
   defaultTab?: TabType | CategoryType;
 }
 
-type TabType = "all" | "my";
-
-export type CategoryType = "Frontend" | "Backend" | "Web" | "Native";
-export const CATEGORIES: CategoryType[] = [
-  "Frontend",
-  "Backend",
-  "Web",
-  "Native",
-];
-
 export interface PostProps {
   id?: string;
   title: string;
@@ -39,6 +29,16 @@ export interface PostProps {
   uid: string;
   category?: CategoryType;
 }
+
+type TabType = "all" | "my";
+
+export type CategoryType = "Frontend" | "Backend" | "Web" | "Native";
+export const CATEGORIES: CategoryType[] = [
+  "Frontend",
+  "Backend",
+  "Web",
+  "Native",
+];
 
 export default function PostList({
   hasNavigation = true,
@@ -83,7 +83,7 @@ export default function PostList({
       await deleteDoc(doc(db, "posts", id));
 
       toast.success("게시글을 삭제했습니다.");
-      getPosts(); // 변경된 post 리스트를 다시 가져옴
+      getPosts();
     }
   };
 
@@ -136,7 +136,7 @@ export default function PostList({
                 <div className="post__title">{post?.title}</div>
                 <div className="post__text">{post?.summary}</div>
               </Link>
-              {post?.email === user?.email && (
+              {post?.uid === user?.uid && (
                 <div className="post__utils-box">
                   <div
                     className="post__delete"
