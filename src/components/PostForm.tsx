@@ -1,7 +1,8 @@
 import { useContext, useEffect, useState } from "react";
-import { db } from "firebaseApp";
 import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
+
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CATEGORIES, CategoryType, PostProps } from "./PostList";
@@ -9,15 +10,16 @@ import { CATEGORIES, CategoryType, PostProps } from "./PostList";
 export default function PostForm() {
   const params = useParams();
   const [post, setPost] = useState<PostProps | null>(null);
-  const { user } = useContext(AuthContext);
   const [title, setTitle] = useState<string>("");
   const [summary, setSummary] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [category, setCategory] = useState<CategoryType>("Frontend");
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
       if (post && post.id) {
         const postRef = doc(db, "posts", post?.id);
@@ -32,6 +34,7 @@ export default function PostForm() {
           }),
           category: category,
         });
+
         toast?.success("게시글을 수정했습니다.");
         navigate(`/posts/${post.id}`);
       } else {
@@ -58,27 +61,6 @@ export default function PostForm() {
     }
   };
 
-  const getPost = async (id: string) => {
-    if (id) {
-      const docRef = doc(db, "posts", id);
-      const docSnap = await getDoc(docRef);
-      setPost({ id: docSnap.id, ...(docSnap.data() as PostProps) });
-      setCategory(post?.category as CategoryType);
-    }
-  };
-
-  useEffect(() => {
-    if (params?.id) getPost(params?.id);
-  }, [params?.id]);
-
-  useEffect(() => {
-    if (post) {
-      setTitle(post?.title);
-      setSummary(post?.summary);
-      setContent(post?.content);
-    }
-  }, [post]);
-
   const onChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -87,11 +69,49 @@ export default function PostForm() {
     const {
       target: { name, value },
     } = e;
-    if (name === "title") setTitle(value);
-    if (name === "summary") setSummary(value);
-    if (name === "content") setContent(value);
-    if (name === "category") setCategory(value as CategoryType);
+
+    if (name === "title") {
+      setTitle(value);
+    }
+
+    if (name === "summary") {
+      setSummary(value);
+    }
+
+    if (name === "content") {
+      setContent(value);
+    }
+
+    if (name === "category") {
+      setCategory(value as CategoryType);
+    }
   };
+
+  const getPost = async (id: string) => {
+    if (id) {
+      const docRef = doc(db, "posts", id);
+      const docSnap = await getDoc(docRef);
+
+      setPost({ id: docSnap.id, ...(docSnap.data() as PostProps) });
+    }
+  };
+
+  useEffect(() => {
+    if (params?.id) getPost(params?.id);
+  }, [params?.id]);
+
+  useEffect(() => {
+    if (post && user)
+      if (post.uid === user.uid) {
+        setTitle(post?.title);
+        setSummary(post?.summary);
+        setContent(post?.content);
+        setCategory(post?.category as CategoryType);
+      } else {
+        navigate("/");
+        toast.error("접근 불가능한 페이지 입니다.");
+      }
+  }, [navigate, post, user]);
 
   return (
     <form onSubmit={onSubmit} className="form">
@@ -144,7 +164,11 @@ export default function PostForm() {
         />
       </div>
       <div className="form__block">
-        <input type="submit" value="제출" className="form__btn--submit" />
+        <input
+          type="submit"
+          value={post ? "수정" : "제출"}
+          className="form__btn--submit"
+        />
       </div>
     </form>
   );
