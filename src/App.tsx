@@ -15,11 +15,15 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
     !!auth?.currentUser
   );
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         setIsAuthenticated(true);
+        if (user.email === "infoAdmin@hyundai.com") {
+          setIsAdmin(true);
+        }
       } else {
         setIsAuthenticated(false);
       }
@@ -30,7 +34,11 @@ function App() {
   return (
     <div className={context.theme === "light" ? "white" : "dark"}>
       <ToastContainer />
-      {init ? <Router isAuthenticated={isAuthenticated} /> : <Loader />}
+      {init ? (
+        <Router isAuthenticated={isAuthenticated} admin={isAdmin} />
+      ) : (
+        <Loader />
+      )}
     </div>
   );
 }

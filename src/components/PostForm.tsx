@@ -2,7 +2,6 @@ import { useContext, useEffect, useState } from "react";
 import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "firebaseApp";
 import AuthContext from "context/AuthContext";
-
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CATEGORIES, CategoryType, PostProps } from "./PostList";
@@ -13,7 +12,7 @@ export default function PostForm() {
   const [title, setTitle] = useState<string>("");
   const [summary, setSummary] = useState<string>("");
   const [content, setContent] = useState<string>("");
-  const [category, setCategory] = useState<CategoryType>("Frontend");
+  const [category, setCategory] = useState<CategoryType>("1월");
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
