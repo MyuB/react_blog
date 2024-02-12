@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { CATEGORIES, PostProps } from "./PostList";
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db } from "firebaseApp";
+import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
-interface CSVInterface {
-  email: string;
+interface XLSXInterface {
+  for: string;
+  writer: string;
   content: string;
 }
 
@@ -20,46 +23,44 @@ const AdminList = () => {
       where("category", "==", category),
       orderBy("createdAt", "asc")
     );
-    const datas = await getDocs(postsQuery);
-    datas?.forEach((doc) => {
-      const dataObj = { ...doc.data(), id: doc.id };
-      setPosts((prev) => [...prev, dataObj as PostProps]);
-    });
-    return datas;
+
+    try {
+      const datas = await getDocs(postsQuery);
+      datas?.forEach((doc) => {
+        const dataObj = { ...doc.data(), id: doc.id };
+        setPosts((prev) => [...prev, dataObj as PostProps]);
+      });
+      toast.success("성공적으로 데이터를 불러왔습니다.");
+    } catch (e) {
+      toast.error("문제가 발생했습니다");
+    }
   };
 
-  const convertToCSV = (data: any) => {
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      "\uFEFF" +
-      Object.keys(data[0]).join(",") +
-      "\n" +
-      data.map((row: any) => Object.values(row).join(",")).join("\n");
-
-    data.forEach((a: any) => console.log(a));
-    return encodeURI(csvContent);
+  const exportToExcel = (data: XLSXInterface[]) => {
+    const ws = XLSX.utils.json_to_sheet(data);
+    console.log(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    XLSX.writeFile(wb, "data.xlsx");
   };
 
   const handleCSVDownload = () => {
     if (posts.length !== 0) {
-      const trimmedData = posts.map((post) => {
-        const temp = post?.comments;
-        const item = temp?.map((comment) => {
-          const email = comment.email;
-          const content = comment.content;
-          return { email, content };
+      const flattenedData: XLSXInterface[] = [];
+      posts.forEach((post) => {
+        const tempTitle = post?.title;
+        const comments = post?.comments;
+        comments?.forEach((data) => {
+          const parsedData = {
+            for: tempTitle,
+            writer: data.email,
+            content: data.content,
+          };
+          flattenedData.push(parsedData);
         });
-        return item;
       });
-      console.log(trimmedData);
 
-      const csvContent = convertToCSV(trimmedData);
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "data.csv");
-      document.body.appendChild(link);
-      link.click();
+      exportToExcel(flattenedData);
     }
   };
 
@@ -72,7 +73,6 @@ const AdminList = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     await getMonthlyPosts();
   };
 
@@ -85,6 +85,7 @@ const AdminList = () => {
           id="category"
           onChange={onChange}
           defaultValue={category}
+          style={{ width: "50%", height: "50px" }}
         >
           <option value="">카테고리를 선택해주세요</option>
           {CATEGORIES?.map((category) => (
@@ -97,11 +98,20 @@ const AdminList = () => {
       <div className="form__block">
         <input
           type="submit"
-          value={"가져오기"}
+          value={"DB에서 데이터 가져오기"}
           style={{ width: "50%", height: "50px" }}
         />
       </div>
-      {posts && <button onClick={handleCSVDownload}>데이터 다운로드</button>}
+      {posts.length !== 0 && (
+        <div className="form__block">
+          <input
+            type="submit"
+            onClick={handleCSVDownload}
+            value="Excel로 내보내기"
+            style={{ width: "50%", height: "50px" }}
+          />
+        </div>
+      )}
     </form>
   );
 };
