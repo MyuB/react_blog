@@ -40,12 +40,32 @@ export interface PostProps {
 
 type TabType = "all" | "my";
 
-export type CategoryType = "Frontend" | "Backend" | "Web" | "Native";
+export type CategoryType =
+  | "1월"
+  | "2월"
+  | "3월"
+  | "4월"
+  | "5월"
+  | "6월"
+  | "7월"
+  | "8월"
+  | "9월"
+  | "10월"
+  | "11월"
+  | "12월";
 export const CATEGORIES: CategoryType[] = [
-  "Frontend",
-  "Backend",
-  "Web",
-  "Native",
+  "1월",
+  "2월",
+  "3월",
+  "4월",
+  "5월",
+  "6월",
+  "7월",
+  "8월",
+  "9월",
+  "10월",
+  "11월",
+  "12월",
 ];
 
 export default function PostList({
@@ -59,23 +79,19 @@ export default function PostList({
   const { user } = useContext(AuthContext);
 
   const getPosts = async () => {
-    // posts 초기화
     setPosts([]);
     let postsRef = collection(db, "posts");
     let postsQuery;
 
     if (activeTab === "my" && user) {
-      // 나의 글만 필터링
       postsQuery = query(
         postsRef,
         where("uid", "==", user.uid),
         orderBy("createdAt", "asc")
       );
     } else if (activeTab === "all") {
-      // 모든 글 보여주기
       postsQuery = query(postsRef, orderBy("createdAt", "asc"));
     } else {
-      // 카테고리 글 보여주기
       postsQuery = query(
         postsRef,
         where("category", "==", activeTab),
@@ -95,7 +111,7 @@ export default function PostList({
       await deleteDoc(doc(db, "posts", id));
 
       toast.success("게시글을 삭제했습니다.");
-      getPosts(); // 변경된 post 리스트를 다시 가져옴
+      getPosts();
     }
   };
 

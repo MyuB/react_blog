@@ -50,7 +50,6 @@ export default function Comments({ post, getPost }: CommentsProps) {
               second: "2-digit",
             }),
           });
-          // 문서 업데이트
           await getPost(post.id);
         }
       }
@@ -71,7 +70,6 @@ export default function Comments({ post, getPost }: CommentsProps) {
       });
 
       toast.success("댓글을 삭제했습니다.");
-      // 문서 업데이트
       await getPost(post.id);
     }
   };
@@ -111,7 +109,9 @@ export default function Comments({ post, getPost }: CommentsProps) {
                   </div>
                 )}
               </div>
-              <div className="comment__text">{comment?.content}</div>
+              <div className="comment__text">
+                {comment.uid === user?.uid ? comment?.content : "*******"}
+              </div>
             </div>
           ))}
       </div>
