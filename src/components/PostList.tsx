@@ -18,6 +18,13 @@ interface PostListProps {
   defaultTab?: TabType | CategoryType;
 }
 
+export interface CommentsInterface {
+  content: string;
+  uid: string;
+  email: string;
+  createdAt: string;
+}
+
 export interface PostProps {
   id?: string;
   title: string;
@@ -28,6 +35,7 @@ export interface PostProps {
   updatedAt?: string;
   uid: string;
   category?: CategoryType;
+  comments?: CommentsInterface[];
 }
 
 type TabType = "all" | "my";
@@ -51,19 +59,23 @@ export default function PostList({
   const { user } = useContext(AuthContext);
 
   const getPosts = async () => {
+    // posts 초기화
     setPosts([]);
     let postsRef = collection(db, "posts");
     let postsQuery;
 
     if (activeTab === "my" && user) {
+      // 나의 글만 필터링
       postsQuery = query(
         postsRef,
         where("uid", "==", user.uid),
         orderBy("createdAt", "asc")
       );
     } else if (activeTab === "all") {
+      // 모든 글 보여주기
       postsQuery = query(postsRef, orderBy("createdAt", "asc"));
     } else {
+      // 카테고리 글 보여주기
       postsQuery = query(
         postsRef,
         where("category", "==", activeTab),
@@ -83,12 +95,13 @@ export default function PostList({
       await deleteDoc(doc(db, "posts", id));
 
       toast.success("게시글을 삭제했습니다.");
-      getPosts();
+      getPosts(); // 변경된 post 리스트를 다시 가져옴
     }
   };
 
   useEffect(() => {
     getPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   return (
